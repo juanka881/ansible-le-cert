@@ -1,0 +1,35 @@
+---
+- name: create acme.sh dir
+  file:
+    path: "{{ le_cert_config_dir }}"
+    state: directory
+
+- name: issue cert
+  shell: |
+    docker run --rm -i \
+    {{ le_cert_envs | map('regex_replace', '^(.*)$', '-e \1') | join (' ') }} \
+    -v {{ le_cert_config_dir }}:/acme.sh \
+    --net=host \
+    neilpang/acme.sh \
+    --issue \
+    --dns {{ le_cert_dns_type }} \
+    {{ le_cert_domains | map('regex_replace', '^(.*)$', '-d \1') | join(' ') }} \
+    {{ '--ca-file ' + le_cert_out_ca_path if le_cert_out_ca_path else '' }} \
+    {{ '--key-file ' + le_cert_out_key_path if le_cert_out_key_path else '' }} \
+    {{ '--cert-file ' + le_cert_out_fullchain_path if le_cert_out_fullchain_path else '' }} \
+    {{ '--fullchain-file ' + le_cert_out_cert_path if le_cert_out_cert_path else '' }}
+  args:
+    creates: "{{ le_cert_config_dir }}/{{ le_cert_domains | first }}"
+
+- name: setup cron job
+  cron:
+    name: "{{ le_cert_cron_name }}"
+    state: present
+    special_time: monthly
+    job: >
+      docker run --rm -i
+      -v {{ le_cert_config_dir }}:/acme.sh"
+      --net=host
+      neilpang/acme.sh
+      --cron
+

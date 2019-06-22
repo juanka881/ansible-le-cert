@@ -1,0 +1,9 @@
+le_cert_cron_name: "le_cert_renew"
+le_cert_config_dir: "/etc/acme.sh"
+le_cert_dns_type: ""
+le_cert_domains: []
+le_cert_envs: []
+le_cert_out_ca_path: ""
+le_cert_out_key_path: ""
+le_cert_out_fullchain_path: ""
+le_cert_out_cert_path: ""
